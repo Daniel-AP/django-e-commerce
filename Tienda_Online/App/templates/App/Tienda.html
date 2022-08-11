@@ -1,0 +1,108 @@
+{% extends "App/base.html" %}
+
+{% load static %}
+
+{% load tags %}
+
+{% block content %}
+    <div class="contenedor-categorias">
+
+        <a href="/categoria/descuentos/0">
+            <div class="categoria">
+                Descuentos
+            </div>
+        </a>
+
+        <a href="/categoria/tecnología/0">
+            <div class="categoria">
+                Tecnología
+            </div>
+        </a>
+
+        <a href="/categoria/muebles/0">
+            <div class="categoria">
+                Muebles
+            </div>
+        </a>
+
+        <a href="/categoria/juguetes/0">
+            <div class="categoria">
+                Juguetes
+            </div>
+        </a>
+
+        <a href="/categoria/deportes/0">
+            <div class="categoria">
+                Deportes
+            </div>
+        </a>
+
+        <a href="/categoria/vestimenta/0">
+            <div class="categoria">
+                Vestimenta
+            </div>
+        </a>
+        <a href="/categoria/otros/0">
+            <div class="categoria">
+                Otros
+            </div>
+        </a>
+    </div>
+
+    <div id="contenedor-productos">
+
+    {% for i in productos_todos|slice:":15" %}
+
+        <div class="targeta-producto">
+            <a href="/producto/{{i.codigo_producto}}" style="text-decoration: none;color:black;width: inherit;height: inherit;">
+                <div class="contenedor-imagen-producto">
+                    <img src="{{i.imagen_url}}" alt="Imagen-Producto">
+                </div>
+                <div class="contenedor-info-producto">
+                    <div class="nombre-producto">
+                        {{i.nombre_producto}}
+                    </div>
+                    {% if i.descuento > 0 %}
+                        <div style="margin-top: 20px;">
+                            <div style="display: inline;font-size: 20px;">
+                                <del>$ {{i.precio}}</del>
+                            </div>
+                            <div class="descuento-producto">
+                                - {{i.descuento}} %
+                            </div>
+                        </div>
+                        <div class="precio-producto">$ {{i.precio|t_precio_descuento:i.descuento}}</div>
+                    {% else %}
+                        <div class="precio-producto">$ {{i.precio}}</div>
+                    {% endif %}
+                    {% for k in 5|t_range %}
+                        {% if k < i.calificacion %}
+                            <span class="material-symbols-outlined" style="color:gold;margin-top: 10px;">
+                                star
+                            </span>
+                        {% else %}
+                            <span class="material-symbols-outlined" style="color:rgb(193, 193, 193);margin-top: 10px;">
+                                star
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </a>     
+        </div>
+
+    {% endfor %}
+
+    </div>
+        {% if hay_siguiente_pagina %}
+        <div class="contenedor-tienda-siguiente-anterior">
+            <button class="tienda-siguiente-anterior" style="left: 20%;" onclick="location.href='/tienda/{{anterior_pagina}}'"{% if pagina == 1 %} disabled {% endif %}>
+                <i class="material-symbols-outlined">navigate_before</i>
+            </button>
+            <div class="numero-pagina">{{pagina}}</div>
+            <button class="tienda-siguiente-anterior" style="right: 20%;" onclick="location.href='/tienda/{{siguiente_pagina}}'">
+                <i class="material-symbols-outlined">navigate_next</i>
+            </button>
+        </div>
+        {% endif %}
+
+{% endblock %}

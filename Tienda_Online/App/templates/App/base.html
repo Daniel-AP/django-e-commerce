@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    {% load static %}
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Tienda Online</title>
+
+</head>
+
+<body>
+    
+    <div id="cabecera-pagina">
+
+            <a href="/" style="text-decoration: none;">
+            <div id="titulo">
+            Tienda Online
+            </div>
+            </a>
+
+            <div id="buscador">
+                <form action="/buscar/0" method="GET">
+                    <button class="material-symbols-outlined" style="font-size: 35px;" type="submit">search</button>
+                    <input type="search" placeholder="Buscar..." name="busqueda" maxlength="60" required>
+                </form>
+            </div>
+                
+            <div style="display: flex;align-items: center;">
+                {% if not user.is_authenticated %}
+                    <a href="/iniciosesion/?next={{request.get_full_path|urlencode}}" style="text-decoration: none;"><div id="iniciar-sesion">Iniciar sesión</div></a>
+                    <a href="/crearcuenta/?next={{request.get_full_path|urlencode}}" style="text-decoration: none;"><div id="crear-cuenta">Crear cuenta</div></a>
+                {% else %}
+                    <a href="/perfil/?next={{request.get_full_path|urlencode}}"><div class="material-symbols-outlined" style="font-size: 60px;color:white;">account_circle</div></a>
+                    <a href="/perfil/?next={{request.get_full_path|urlencode}}" id="nombre-cuenta">{{user.username}}</a>
+                    <a href="/salir/?next={{request.get_full_path|urlencode}}" style="text-decoration: none;"><div id="salir-cuenta" class="material-symbols-outlined">logout</div></a>
+                {% endif %}
+            </div>
+        
+    </div>
+
+    <div id="nav">
+            
+        <div><i class="material-symbols-outlined" style="padding-right: 20px;">home</i><a href="/">Inicio</a></div>
+        <div><i class="material-symbols-outlined" style="padding-right: 20px;">storefront</i><a href="/tienda/0">Tienda</a></div>
+        <div><i class="material-symbols-outlined" style="padding-right: 20px;">call</i><a href="/contacto">Contacto</a></div>
+    
+    </div>
+
+    {% block content %}
+    {% endblock %}
+
+</body>
+
+<footer>
+    <div id="pie-pagina">
+        <ul>
+            <li>Política de privacidad  •</li>
+            <li>Aviso legal  •</li>
+            <li>Cookies</li>
+        </ul>
+        © Tienda Online 2022
+        <ul>
+            <li><a href="https://www.instagram.com/"><img src="http://assets.stickpng.com/images/58864ec6d27829db9cf6da58.png" alt="Instagram"></a></li>
+            <li><a href="https://twitter.com/"><img src="https://bit.ly/3z6Ee5N" alt="Twitter"></a></li>
+            <li><a href="https://facebook.com/"><img src="https://bit.ly/38Tc4kl" alt="Facebook"></a></li>
+            <li><a href="https://github.com/Daniel-AP"><img src="https://cdn-icons-png.flaticon.com/512/1051/1051377.png" alt="Github"></a></li>
+        </ul>
+    </div>
+</footer>
+</html>

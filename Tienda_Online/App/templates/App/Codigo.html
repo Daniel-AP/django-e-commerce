@@ -1,0 +1,75 @@
+{% load tags %}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" class="contenedor-inicio-sesion">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <title>Tienda Online</title>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    window.onload = function(){
+        document.getElementsByTagName("form")[0].onsubmit = submit;
+    };
+    function submit (e){
+        e.preventDefault();
+        $.ajax({
+            url: "/codigo-contrasena/",
+            method: "POST",
+            data:{
+                "codigo": document.getElementsByName("codigo")[0].value    
+            },
+            headers: { "X-CSRFToken": "{{csrf_token}}" },
+            beforeSend: function(){
+                document.getElementById("x").style.visibility = "visible";
+                document.getElementById("cargar-mas-load").style.visibility = "visible";
+            },
+            success: function(response){
+                if (response=="Error") {
+                    try {
+                        document.getElementsByClassName("mensaje")[0].remove();
+                    } catch (e) {
+                        
+                    };
+
+                    document.getElementById("x").style.visibility = "hidden";
+                    document.getElementById("cargar-mas-load").style.visibility = "hidden";
+                    let error_alerta = document.createElement("div");
+                    error_alerta.classList.add("mensaje");
+                    error_alerta.innerHTML = "El código no es válido. Por favor intente de nuevo.";
+                    error_alerta.style = "position: absolute; left: 10%;top: -1%;right: 10%;opacity: 0;";
+                    document.body.insertBefore(error_alerta,document.body.firstElementChild);
+                    $(error_alerta).animate({opacity: 1,top: "3%"},150);
+
+                } else {
+                    location.replace(response);
+                }
+            }
+        })
+    };
+</script>
+<body>
+    <div class="contenedor-atras-vista-producto" onclick="history.back()" style="top: 20px;left: 20px;"><div class="material-symbols-outlined" id="atras-vista-producto">arrow_back_ios_new</div></div>
+    <div class="contenedor-form-inicio-sesion" style="box-shadow: 4px 4px 5px rgba(0,0,0,0.2);">
+        <div class="titulo-sesion">Cambiar contraseña</div>
+        <form method="POST" class="contenedor-form-inicio-sesion" onsubmit="submit(e)">
+            {% csrf_token %}
+            <div style="margin-top: 75px;">
+                <span class="material-symbols-outlined" style="margin-left: 16px;font-size: 40px;position: absolute;margin-top: 6px;">person</span>
+                <input type="text" name="codigo" class="input-sesion" placeholder="Código" spellcheck="false" required/>
+            </div>
+            <p style="font-size: small;align-self:flex-start;margin-left: 65px;">Escribe el código que te enviamos por tu correo electrónico<br>para poder modificar tu contraseña.</p>
+            <div style="position: absolute;width: 400px;background-color: white;height: 100px;top: 60%;visibility: hidden;" id="x"></div>
+            <div style="position: absolute;bottom: 27%;visibility: hidden;" id="cargar-mas-load"></div>
+            <input type="submit" value="Continuar" class="continuar-inicio-sesion" style="margin-top: 100px;">
+        </form>
+    </div>
+</body>
+</html>

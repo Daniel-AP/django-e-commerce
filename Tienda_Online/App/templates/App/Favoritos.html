@@ -1,0 +1,79 @@
+{% load static %}
+
+{% load tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Tienda Online</title>
+
+</head>
+<body style="padding-top: 20px;padding-bottom: 200px;">
+    <div class="contenedor-categoria-barra">
+        <button onclick="history.back()" class="material-symbols-outlined">arrow_back_ios</button>
+        Favoritos
+    </div>
+    
+    {% if favoritos %}
+    
+    <div id="contenedor-productos">
+    
+        {% for i in favoritos %}
+    
+            <div class="targeta-producto">
+                <a href="/producto/{{i.codigo_producto}}" style="text-decoration: none;color:black;width: inherit;height: inherit;">
+                    <div class="contenedor-imagen-producto">
+                        <img src="{{i.imagen_url}}" alt="Imagen-Producto">
+                    </div>
+                    <div class="contenedor-info-producto">
+                        <div class="nombre-producto">
+                            {{i.nombre_producto}}
+                        </div>
+                        {% if i.descuento > 0 %}
+                        <div style="margin-top: 20px;">
+                            <div style="display: inline;font-size: 20px;">
+                                <del>$ {{i.precio}}</del>
+                            </div>
+                            <div class="descuento-producto">
+                                - {{i.descuento}} %
+                            </div>
+                        </div>
+                        <div class="precio-producto">$ {{i.precio|t_precio_descuento:i.descuento}}</div>
+                        
+                        {% else %}
+                        <div class="precio-producto">$ {{i.precio}}</div>
+    
+                        {% endif %}
+                        {% for j in 5|t_range %}
+                            {% if j < i.calificacion %}
+                                <span class="material-symbols-outlined" style="color:gold;margin-top: 10px;">
+                                    star
+                                </span>
+                            {% else %}
+                                <span class="material-symbols-outlined" style="color:rgb(193, 193, 193);margin-top: 10px;">
+                                    star
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </a>     
+            </div>
+    
+        {% endfor %}
+    
+    </div>
+    
+    {% else %}
+       
+        <div style="margin-left: 50px;margin-top: 50px;font-size: 25px;font-weight: bold;">No tienes favoritos</div>
+    
+    {% endif %}
+</body>
+</html>

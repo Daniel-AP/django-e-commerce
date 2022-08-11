@@ -1,0 +1,104 @@
+{% load tags %}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <title>Tienda Online</title>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    {% if error %}
+    <div style="position: absolute; left: 10%;top: 3%;right: 10%;">
+        <div class="mensaje">
+            {{error}}
+        </div>
+    </div>
+    {% endif %}
+    {% if cambio == 1%}
+    <form action="/guardarinfo/" method="POST" {% if error %} style="margin-top: 6.3%;" {% else %} style="margin: 3.6% auto;" {% endif %}>
+        {% csrf_token %}
+        {% endif %}
+        <div class="contenedor-atras-vista-producto" onclick="history.back()" style="left: 30px;top: 30px;height: 70px;width: 70px;"><i class="material-symbols-outlined" id="atras-vista-producto" style="font-size: 35px;">arrow_back_ios_new</i></div>
+        <div class="contenedor-tabla-info-personal" {% if cambio == 0 %} style="margin: 3.6% auto;" {% endif %}>
+            <table class="tabla-info-personal">
+            <tr>
+                <td class="d-tabla-info-personal">
+                    <p>Nombre :</p>
+                </td>
+                <td class="d-tabla-info-personal">
+                    {% if cambio == 0%}
+                        <div>{{user.username}}</div>
+                    {% else %}
+                        <input type="text" name="nombre" value="{{user.username}}" spellcheck="false" autofocus onfocus="this.select()" minlength="5" maxlength="16" required>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="d-tabla-info-personal">
+                    <p>E-mail :</p>
+                </td>
+                <td class="d-tabla-info-personal">
+                    {% if cambio == 0%}
+                        <div>{{user.email}}</div>
+                    {% else %}
+                        <input type="email" name="email" value="{{user.email}}" onfocus="this.select()" maxlength="50" required>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="d-tabla-info-personal">
+                    <p>Contraseña :</p>
+                </td>
+                <td class="d-tabla-info-personal">
+                    {% if cambio == 0%}
+                        <div>••••••••</div>
+                    {% else %}
+                        <input type="password" name="contrasena" value="********" minlength="8" maxlength="16" onfocus="this.select()" required>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="d-tabla-info-personal">
+                    <p>Inicio sesión :</p>
+                </td>
+                <td class="d-tabla-info-personal">
+                    <div>{{user.last_login}}</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="d-tabla-info-personal">
+                    <p>Creación :</p>
+                </td>
+                <td class="d-tabla-info-personal">
+                    <div>{{user.date_joined}}</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="d-tabla-info-personal" style="vertical-align: bottom;">
+                    {% if cambio == 0%}
+                        <button onclick="location.href='/infopersonal/1'" class="btn-info-personal">
+                            Cambiar
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn-info-personal">
+                            Guardar
+                        </button>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        </div>
+    {% if cambio == 1%}
+    </form>
+    {% endif %}
+    {% endif %}
+</body>
+</html>

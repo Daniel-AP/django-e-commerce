@@ -1,0 +1,298 @@
+{% extends "App/base.html" %}
+
+{% load static %}
+
+{% load tags %}
+
+{% block content %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+
+    window.onload = function(){
+    document.getElementById("c-texto").onscroll = scroll;
+    document.getElementById("favorito-vista-producto").onclick = favorito;
+    document.getElementById("agregar-carrito").onclick = carrito;
+    Array.from(document.getElementsByClassName("mas-cuerpo-resena")).forEach((el) => {num_lineas_resena(el);})
+};
+
+    function scroll(){
+        
+        let c_texto = document.getElementById("c-texto");
+        let texto = document.getElementById("texto");
+
+        if (Math.round($(c_texto).scrollTop() + $(c_texto).innerHeight()) == c_texto.scrollHeight) {
+            texto.classList.add("no-texto");
+        } else{
+            texto.classList.remove("no-texto");
+        };
+    };
+
+    function favorito(){
+
+        let es_favorito = document.getElementById("favorito-vista-producto").style.color == "red" ? true:false;
+
+        if (es_favorito) {
+            $("#favorito-vista-producto").removeClass("material-icons");
+            $("#favorito-vista-producto").addClass("material-symbols-outlined");
+            $("#favorito-vista-producto").css("color","black");
+        } else {
+            $("#favorito-vista-producto").removeClass("material-symbols-outlined");
+            $("#favorito-vista-producto").addClass("material-icons");
+            $("#favorito-vista-producto").css("color","red");
+        };
+
+        $.ajax({
+            url: "/agregar-favorito/{{producto_contenido.0.codigo_producto}}",
+            method: "GET",
+        });
+    };
+
+    function carrito(){
+
+        let carrito_ = document.getElementById("agregar-carrito");
+        let check = document.getElementById("check-carrito");
+        check.style.opacity = "1";
+        check.style.visibility = "visible";
+        carrito_.style.backgroundColor = "rgb(255, 247, 247)";
+        carrito_.disabled = true;
+        
+        $.ajax({
+            url: "/agregar-carrito/{{producto_contenido.0.codigo_producto}}",
+            method: "GET",
+        });
+    };
+
+    function num_lineas_resena (el){
+        
+        let cuerpo_resena = el.parentElement.querySelector(".cuerpo-resena");
+
+        if (cuerpo_resena.scrollHeight > cuerpo_resena.clientHeight) {
+            el.style.visibility = "visible";
+        };
+        
+    };
+
+    function mas_resenas(){
+            
+        $.ajax({
+            url: `/mas-resenas/{{producto_contenido.0.codigo_producto}}/${document.getElementById("resenas").children.length}`,
+            method: "GET",
+            beforeSend: function(){
+                document.getElementById("cargar-mas-btn").id = "cargar-mas-load";
+                document.getElementById("cargar-mas-load").innerHTML = "";
+            },
+            success: function(response){
+                
+                response = JSON.parse(response);
+
+                for (let i in response){
+
+                    let copia = document.getElementById("resenas").children[1].cloneNode(true);
+                    copia.querySelector(".cuerpo-resena").innerHTML = response[i].fields.resena_texto;
+                    copia.querySelector(".titulo-resena").innerHTML = response[i].fields.resena_titulo;
+                    copia.querySelector(".fecha-resena").innerHTML = response[i].fields.fecha_resena.replaceAll("-","/");
+                    copia.querySelector("#calificacion-resena").innerHTML = "<i class='material-symbols-outlined' style='color: gold;''>star</i>".repeat(response[i].fields.calificacion);
+                    copia.querySelector("#calificacion-resena").innerHTML += "<i class='material-symbols-outlined' style='color: rgb(193, 193, 193);'>star</i>".repeat(5-response[i].fields.calificacion);
+                    document.getElementById("resenas").appendChild(copia);
+
+                };
+
+                if (document.getElementById("resenas").children.length == parseInt("{{limite_resenas}}")) {
+                    document.getElementById("cargar-mas-load").remove();
+                } else{
+                    document.getElementById("cargar-mas-load").id = "cargar-mas-btn";
+                    document.getElementById("cargar-mas-btn").innerHTML = "Cargar más";
+                };
+            }
+        })
+    };
+
+    function calificaciones(event){
+
+        let calificaciones_els = event.target.parentElement.querySelectorAll(".material-symbols-outlined");
+        calificaciones_els = Array.from(calificaciones_els);
+        
+        for (let i in calificaciones_els){
+
+            if (calificaciones_els.indexOf(event.target) < parseInt(i)) {
+                calificaciones_els[i].style.color = "rgb(193, 193, 193)";
+            } else{
+                calificaciones_els[i].style.color = "gold";
+            };
+        }
+    };
+
+    function submit_resena(event){
+
+        event.preventDefault();
+
+        $.ajax({
+            url: "/anadir-resena/{{producto_contenido.0.codigo_producto}}",
+            method : "POST",
+            data: {
+                "titulo":document.getElementById("resena-propia-titulo").value,
+                "texto":document.getElementById("resena-propia-texto").value,
+                "calificacion":Array.from(event.target.querySelectorAll("div.material-symbols-outlined")).map((v) => {return v.style.color == "gold" ? 1:0}).reduce((a,b) => {return a+b})
+            },
+            headers: { "X-CSRFToken": "{{csrf_token}}" },
+            beforeSend: function(){
+                event.target.querySelector("button").classList.remove("material-symbols-outlined");
+                event.target.querySelector("button").innerHTML = "";
+                event.target.querySelector("button").id = "cargar-mas-load";
+                event.target.querySelector("button").style = "position: absolute;background-color: white;bottom: 15px;right: 15px;margin: 0 0;";
+            },
+            success: function(){
+
+                $(event.target.querySelector("button").parentElement.children[1]).unwrap();
+                event.target.querySelector("button").remove();
+
+                let nuevo_titulo = document.createElement("div");
+                nuevo_titulo.classList.add("titulo-resena");
+                nuevo_titulo.innerHTML = event.target.querySelector("input[type='text']").value;
+
+                Array.from(event.target.querySelectorAll(".material-symbols-outlined")).forEach((v) => {v.removeAttribute("onclick");v.style.cursor='default'});
+
+                let nuevo_texto = document.createElement("div");
+                nuevo_texto.classList.add("cuerpo-resena");
+                nuevo_texto.innerHTML = event.target.querySelector("textarea").value;
+
+                let nuevo_button = document.createElement("button");
+                nuevo_button.classList.add("mas-cuerpo-resena");
+                nuevo_button.onclick = function (event){
+                    console.log(event.target);
+                    this.parentElement.querySelector('.cuerpo-resena').style.overflow = 'visible';
+                    this.parentElement.querySelector('.cuerpo-resena').style.height = 'fit-content';
+                    this.parentElement.querySelector('.cuerpo-resena').style.removeProperty('-webkit-line-clamp');
+                    this.parentElement.querySelector('.cuerpo-resena').style.display = 'block';
+                    this.parentElement.style.height = 'fit-content';
+                    this.remove();
+                };
+                let icono = document.createElement("div");
+                icono.classList.add("material-symbols-outlined");
+                icono.innerHTML = "expand_more";
+                nuevo_button.appendChild(icono);
+
+                event.target.querySelector("input[type='text']").parentElement.replaceChild(nuevo_titulo,event.target.querySelector("input[type='text']"));
+
+                event.target.querySelector("textarea").parentElement.replaceChild(nuevo_texto,event.target.querySelector("textarea"));
+
+                event.target.parentElement.appendChild(nuevo_button);
+                num_lineas_resena(nuevo_button);
+
+                event.target.outerHTML = event.target.innerHTML;
+
+            }
+        })
+
+    }
+
+</script>
+
+<div class="contenedor-vista-producto">
+    
+    <div class="contenedor-imagen-vista-producto">
+    <div class="contenedor-atras-vista-producto" onclick="history.back()"><div class="material-symbols-outlined" id="atras-vista-producto">arrow_back_ios_new</div></div>
+    <img class="imagen-vista-producto" src="{{producto_contenido.0.imagen_url}}"></img>
+    </div>
+    <div class="contenedor-info-vista-producto">
+    <div style="display:flex;justify-content:space-between;margin-top:  20px;flex-direction: row;width: 100%;max-height: 5%;">
+        <div class="nombre-vista-producto" title="{{producto_contenido.0.nombre_producto}}">{{producto_contenido.0.nombre_producto}}</div>
+        <button id="favorito-vista-producto" {% if es_favorito %}class="material-icons" style="color:red;" {% else %}class="material-symbols-outlined"{% endif %}{% if user.is_anonymous %}disabled{% endif %}>favorite</button>
+    </div>
+    <div class="calificacion-vista-producto">
+    {% for i in 5|t_range %}
+        {% if i < producto_contenido.0.calificacion %}
+            <div class="material-symbols-outlined" style="color:gold;margin-right: 10px;">
+                star
+            </div>
+        {% else %}
+            <div class="material-symbols-outlined" style="color:rgb(193, 193, 193);margin-right: 10px;">
+                star
+            </div>
+        {% endif %}
+    {% endfor %}
+    <span onclick="document.getElementById('resenas').scrollIntoView({'behavior':'smooth'});" style="cursor: pointer;">{{limite_resenas}} reseñas</span>
+    </div>
+    <div style="margin-top: 15px;">
+        {% if producto_contenido.0.descuento > 0 %}
+            <span><del style="font-size: 20px;">{{producto_contenido.0.precio}}</del></span>
+            <span class="contenedor-descuento-porcentaje">- {{producto_contenido.0.descuento}} %</span>
+            <div class="precio-final-vista-producto" style="margin-top: 20px;">$ {{producto_contenido.0.precio|t_precio_descuento:producto_contenido.0.descuento}}</div>
+        {% else %}
+            <div class="precio-final-vista-producto">$ {{producto_contenido.0.precio}}</div>
+        {% endif %}
+    </div>
+    <div style="position: relative;height: 45%;margin-top: 15px;">
+        <div class="info-vista-producto" id="c-texto">
+            <div class="texto" id="texto">{{producto_contenido.0.descripcion}}</div>
+        </div>
+    </div>
+    <div style="width: 100%;height: 15%;margin-top: auto;margin-bottom: 10px;">
+    <button id="agregar-carrito" class="carrito-vista-producto" {% if es_carrito %}style="background-color: rgb(255, 247, 247);"{% endif %} {% if es_carrito or user.is_anonymous %}disabled{% endif %}>
+        Agregar al carrito
+        <div id="check-carrito" class="material-symbols-outlined" style="color: red;margin-left: 10px;font-size: 35px;position: absolute;right: 45px;opacity: {% if not es_carrito %}0{% else %}1{% endif %};visibility:{% if not es_carrito %}hidden{% else %}visible{% endif %};">done</div>
+    </button>
+    <span><a class="comprar-vista-producto" href="">Comprar</a></span>
+    </div>
+    </div>
+
+</div>
+<div class="contenedor-resenas" id="resenas">
+    {% if not es_resena and not user.is_anonymous %}
+    <div class="resena" style="height: fit-content;max-height: fit-content;">
+        <form method="POST" onsubmit="submit_resena(event)">
+        <div style="display: flex;margin-bottom: 2%;align-items: center;">
+            <input type="text" id="resena-propia-titulo" required maxlength="45">
+            <div id="calificacion-resena">
+            {% for i in 5|t_range %}
+                <div class="material-symbols-outlined" onclick="calificaciones(event);" style="color: rgb(193, 193, 193);cursor: pointer;user-select: none;">star</div>
+            {% endfor %}
+            </div>
+            <div class="fecha-resena">{{fecha_actual}}</div>
+        </div>
+        <div style="position: relative;">
+            <textarea id="resena-propia-texto" placeholder="Escribe tu reseña..." wrap="hard" required cols="135" maxlength="65535"></textarea>
+            <button type="submit" style="height: 50px;width: 50px;border-radius: 50%;position: absolute;background-color: white;bottom: 15px;right: 15px;display: flex;justify-content: center;align-items: center;cursor: pointer;border: 1px solid rgb(193, 193, 193);" class="material-symbols-outlined">arrow_forward</button>
+        </div>
+        </form>
+    </div>
+    {% endif %}
+    {% for i in resenas %}
+        <div class="resena">
+            <div style="display: flex;margin-bottom: 2%;">
+            <div class="titulo-resena">
+                {{i.resena_titulo}}
+            </div>
+            <div id="calificacion-resena">
+                {% for j in 5|t_range %}
+                    {% if j < i.calificacion %}
+                        <div class="material-symbols-outlined" style="color:gold">
+                            star
+                        </div>
+                    {% else %}
+                        <div class="material-symbols-outlined" style="color:rgb(193, 193, 193)">
+                            star
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="fecha-resena">
+                {{i.fecha_resena}}
+            </div>
+            </div>
+            <div class="cuerpo-resena">
+                {{i.resena_texto}}
+            </div>
+            <button class="mas-cuerpo-resena" onclick="this.parentElement.querySelector('.cuerpo-resena').style.overflow = 'visible';this.parentElement.querySelector('.cuerpo-resena').style.height = 'fit-content';this.parentElement.querySelector('.cuerpo-resena').style.removeProperty('-webkit-line-clamp');this.parentElement.querySelector('.cuerpo-resena').style.display = 'block';this.parentElement.style.height = 'fit-content';this.remove();">
+                <div class="material-symbols-outlined">expand_more</div>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+{% if resenas|length < limite_resenas %}
+<div onclick="mas_resenas()" id="cargar-mas-btn">Cargar más</div>
+{% endif %}
+
+{% endblock %}

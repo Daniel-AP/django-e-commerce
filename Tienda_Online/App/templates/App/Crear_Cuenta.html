@@ -1,0 +1,72 @@
+{% extends "App/Inicio_Sesion.html" %}
+
+{% load tags %}
+
+{% load static %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    window.onload = function(){
+        document.getElementsByTagName("form")[0].onsubmit = submit;
+    }
+    function submit (e){
+        e.preventDefault();
+        $.ajax({
+            url: "/crearcuenta/",
+            method: "POST",
+            data:{
+                "nombre": document.getElementsByName("nombre_cuenta")[0].value,
+                "contrasena": document.getElementsByName("contrasena_cuenta")[0].value,
+                "email": document.getElementsByName("email_cuenta")[0].value    
+            },
+            headers: { "X-CSRFToken": "{{csrf_token}}" },
+            beforeSend: function(){
+                $("#continuar").hide();
+                document.getElementById("cargar-mas-load").style.visibility = "visible";
+            },
+            success: function(response){
+                if (response=="Error") {
+                    try {
+                        document.getElementsByClassName("mensaje")[0].remove();
+                    } catch (e) {
+                        
+                    };
+
+                    $("#continuar").show();
+                    document.getElementById("cargar-mas-load").style.visibility = "hidden";
+                    let error_alerta = document.createElement("div");
+                    error_alerta.classList.add("mensaje");
+                    error_alerta.innerHTML = "Esta cuenta ya existe.";
+                    error_alerta.style = "position: absolute; left: 10%;top: -1%;right: 10%;opacity: 0;";
+                    document.body.insertBefore(error_alerta,document.body.firstElementChild);
+                    $(error_alerta).animate({opacity: 1,top: "3%"},150);
+
+                } else {
+                    location.replace(response);
+                }
+            }
+        })
+    };
+</script>
+<div class="titulo-sesion">Crear Cuenta</div>
+<form method="POST" class="contenedor-form-inicio-sesion" onsubmit="submit(e)">
+    {% csrf_token %}
+    <div style="margin-top: 75px;">
+        <span class="material-symbols-outlined" style="margin-left: 16px;font-size: 40px;position: absolute;margin-top: 6px;">person</span>
+        <input type="text" name="nombre_cuenta" class="input-sesion" placeholder="Nombre" required minlength="5" maxlength="16" spellcheck="false">
+    </div>
+    <div style="margin-top: 25px;">
+        <span class="material-symbols-outlined" style="margin-left: 16px;font-size: 40px;position: absolute;margin-top: 6px;">mail</span>
+        <input type="email" name="email_cuenta" class="input-sesion" placeholder="E-mail" required maxlength="50" spellcheck="false">
+    </div>
+    <div style="margin-top: 25px;">
+        <span class="material-symbols-outlined" style="margin-left: 16px;font-size: 40px;position: absolute;margin-top: 6px;">lock</span>
+        <input type="password" name="contrasena_cuenta" class="input-sesion" placeholder="Contraseña" required minlength="8" maxlength="16">
+    </div>
+    <div style="position: absolute;bottom: 25%;visibility: hidden;" id="cargar-mas-load"></div>
+    <input type="submit" value="Crear" class="crear-cuenta" id="continuar">
+    <div style="margin-top: auto;margin-bottom: 10px;align-self: flex-start;margin-left: 30px;font-size: small;">¿Ya tienes cuenta? <a class="min-texto" href="/iniciosesion">Inicia sesión</a></div>
+</form>
+
+{% endblock %}

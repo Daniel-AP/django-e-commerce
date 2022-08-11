@@ -1,0 +1,196 @@
+{% load static %}
+
+{% load tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Tienda Online</title>
+
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    function menos(event,codigo){
+
+        event.stopPropagation();
+
+        let contador = document.getElementById(codigo+"c");
+        let anterior = parseInt(contador.innerHTML)-1;
+        let cantidad_menos = parseInt(document.getElementById(codigo+"cantidad").innerHTML)-1;
+        let subtotal = document.getElementById("items-carrito-subtotal").children[1];
+        let monto_subtotal = parseInt(subtotal.innerHTML.replace("$","").replaceAll(",",""));
+        let precio = parseInt(event.target.dataset.precio.replaceAll(",",""));
+        document.getElementById(codigo+"del").dataset.precio = parseInt(document.getElementById(codigo+"del").dataset.precio)-precio;
+
+        document.getElementById(codigo+"cantidad").innerHTML = cantidad_menos;
+        subtotal.innerHTML = "$ "+(monto_subtotal-precio).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        document.getElementById(codigo + "+").disabled = false;
+        
+        if (anterior == 0) {
+            event.target.disabled = true;
+
+        } else {
+            contador.innerHTML = anterior;
+            if (anterior-1 == 0) {
+                event.target.disabled = true;
+            }
+        };
+
+        $.ajax({
+            url: `/menos-producto-carrito/${codigo.slice(0,codigo.indexOf("|"))}`,
+            method: "GET",
+        });
+    };
+
+    function mas(event,limite,codigo){
+
+        event.stopPropagation();
+
+        limite = parseInt(limite);
+        let contador = document.getElementById(codigo+"c");
+        let siguiente = parseInt(contador.innerHTML)+1;
+        let cantidad_mas = parseInt(document.getElementById(codigo+"cantidad").innerHTML)+1;
+        let subtotal = document.getElementById("items-carrito-subtotal").children[1];
+        let monto_subtotal = parseInt(subtotal.innerHTML.replace("$","").replaceAll(",",""));
+        let precio = parseInt(event.target.dataset.precio.replaceAll(",",""));
+        document.getElementById(codigo+"del").dataset.precio = parseInt(document.getElementById(codigo+"del").dataset.precio)+precio;
+
+        if (siguiente > limite) {
+                event.target.disabled = true;
+        } else {
+            contador.innerHTML = siguiente;
+            if (siguiente+1 > limite) {
+                event.target.disabled = true;
+            };
+        };
+
+        document.getElementById(codigo+"cantidad").innerHTML = cantidad_mas;
+        subtotal.innerHTML = "$ "+(monto_subtotal+precio).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        document.getElementById(codigo + "-").disabled = false;
+
+        $.ajax({
+            url: `/mas-producto-carrito/${codigo.slice(0,codigo.indexOf("|"))}`,
+            method: "GET"
+        });
+    };
+
+    function borrar(event,codigo){
+
+        event.stopPropagation();
+
+        $("#"+codigo.replace("|","")+"card").animate({opacity: "0",'margin-left':'-650px'}, 500, function() {
+
+            $("#"+codigo.replace("|","")+"card").remove();
+            $.ajax({
+            url: `/borrar-producto-carrito/${codigo.slice(0,codigo.indexOf("|"))}`,
+            method: "GET",
+            success: function(){
+
+                if (document.getElementById("contenedor-productos-carrito").children.length == 0) {
+                    location.reload();
+                } else{
+                    
+                document.getElementById("num-items").innerHTML = `${parseInt(document.getElementById("num-items").innerHTML)-1} ítems`;
+
+                let subtotal = document.getElementById("items-carrito-subtotal").children[1];
+                let monto_subtotal = parseInt(subtotal.innerHTML.replace("$","").replaceAll(",",""));
+                let precio = parseInt(event.target.dataset.precio);
+
+                subtotal.innerHTML = "$ "+ (monto_subtotal-precio).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                };
+
+            }
+        });
+            
+        });
+
+        $("#"+codigo.replace("|","")+"detail").animate({opacity: "0",'margin-top':'-66px'}, 500, function() {$("#"+codigo.replace("|","")+"detail").remove()});
+}
+
+</script>
+
+<body style="padding-top: 20px;">
+    <div class="contenedor-categoria-barra">
+        <button onclick="history.back()" class="material-symbols-outlined">arrow_back_ios</button>
+        Carrito
+    </div>
+    
+    {% if carrito %}
+    <div style="display: flex;justify-content: center;margin-bottom: 100px;">
+    <div style="display: flex;flex-wrap: wrap;width: 52%;gap: 40px 50px;padding-left: 40px;" id="contenedor-productos-carrito">
+    
+        {% for i in carrito %}
+            <div class="targeta-producto" onclick="location.href='/producto/{{i.codigo_producto}}'" id="{{i.codigo_producto}}{{forloop.counter0}}card">
+                <div class="contenedor-imagen-producto">
+                    <img src="{{i.imagen_url}}" alt="Imagen-Producto">
+                </div>
+                <div class="contenedor-info-producto">
+                    <div style="display: flex;justify-content: space-between;width: 89%;align-items: center;">
+                    <div class="nombre-producto" style="width: 86%;">
+                        {{i.nombre_producto}}
+                    </div>
+                    <button id="{{i.codigo_producto}}|{{forloop.counter0}}del" class="material-symbols-outlined borrar-item-carrito" onclick="borrar(event,'{{i.codigo_producto}}|{{forloop.counter0}}')" data-precio="{{i.precio_total}}">delete</button>
+                    </div>
+                    <div class="precio-producto"> 
+                        $ {{i.precio|t_precio_descuento:i.descuento}}
+                    </div>
+                    <div class="contenedor-opciones-producto-carrito">
+                        <div style="display: flex;justify-content: space-between;align-items: center;width: 40%;max-width: 60%;min-width: 40%;">
+                            <div style="height: 35px;width: 35px;margin-right: 5px;"><button id="{{i.codigo_producto}}|{{forloop.counter0}}-" class="btn-menos-mas-item-carrito" onclick="menos(event,'{{i.codigo_producto}}|{{forloop.counter0}}')" data-precio="{{i.precio|t_precio_descuento:i.descuento}}" {% if i.cantidad == 1 %}disabled{% endif %}>-</button></div>
+                            <div id="{{i.codigo_producto}}|{{forloop.counter0}}c" style="text-align: center;">{{i.cantidad}}</div>
+                            <div style="height: 35px;width: 35px;margin-left: 5px;"><button id="{{i.codigo_producto}}|{{forloop.counter0}}+" class="btn-menos-mas-item-carrito" onclick="mas(event,'{{i.unidades}}','{{i.codigo_producto}}|{{forloop.counter0}}')" data-precio="{{i.precio|t_precio_descuento:i.descuento}}" {% if i.cantidad >= i.unidades %}disabled{% endif %}>+</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+        {% endfor %}
+        
+    </div>
+    
+    <div class="detalles-carrito">
+        <div class="num-items-carrito" id="num-items">
+            {{carrito|length}} ítems
+        </div>
+        <div style="height: 55%;position: relative;">
+        <div class="degradado"></div>
+        <div class="contenedor-items-carrito" id="contenedor-items">
+            {% for i in carrito %}
+                <div class="items-carrito" id="{{i.codigo_producto}}{{forloop.counter0}}detail" onclick="document.getElementById('{{i.codigo_producto}}{{forloop.counter0}}card').scrollIntoView({ behavior: 'smooth', block: 'end'});">
+                    <div style="min-height: 45px;min-width: 45px;max-height: 45px;max-width: 45px;margin-left: 5px;margin-right: 10px;display: flex;justify-content: center;align-items: center;">
+                        <img src="{{i.imagen_url}}" alt="">
+                    </div>
+                    <div class="items-carrito-texto">
+                        {{i.nombre_producto}}
+                    </div>
+                    <div class="items-cantidad" id="{{i.codigo_producto}}|{{forloop.counter0}}cantidad">
+                        {{i.cantidad}}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        </div>
+        <div class="items-carrito-subtotal" id="items-carrito-subtotal">
+            <div>Subtotal</div>
+            <div>$ {{subtotal}}</div>
+        </div>
+        <a class="comprar-detalles-carrito" href="">
+            Comprar
+        </a>
+    </div>
+    </div>
+    {% else %}
+       
+        <div style="margin-left: 50px;margin-top: 50px;font-size: 25px;font-weight: bold;">No tienes productos en tu carrito</div>
+    
+    {% endif %}
+</body>
+</html>

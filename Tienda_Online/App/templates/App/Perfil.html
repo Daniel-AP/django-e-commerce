@@ -1,0 +1,42 @@
+{% load tags %}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://bit.ly/3NaSte8">
+    <link rel="stylesheet" href="{% static 'App/estilo.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <title>Tienda Online</title>
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <div class="contenedor-categoria-barra" style="margin-top: 50px;margin-bottom: 35px;">
+            <button onclick="history.back()" class="material-symbols-outlined">arrow_back_ios</button>
+            Mi cuenta
+        </div>
+        <div class="contenedor-opciones-perfil">
+            <a class="opcion-perfil" href="/infopersonal/0">
+                <i class="material-symbols-outlined">person</i>
+                <div class="opcion-texto-perfil" style="margin-left: 10px;">Información Personal</div>
+            </a>
+            <a class="opcion-perfil" href="/carrito">
+                <i class="material-symbols-outlined">shopping_cart</i>
+                <div class="opcion-texto-perfil">Carrito</div>
+            </a>
+            <a class="opcion-perfil" href="/favoritos">
+                <i class="material-symbols-outlined">favorite</i>
+                <div class="opcion-texto-perfil">Favoritos</div>
+            </a>
+            <!-- <a class="opcion-perfil" href="/">
+                <i class="material-symbols-outlined">shopping_bag</i>
+                <div class="opcion-texto-perfil">Pedidos</div>
+            </a> -->
+        </div>
+    {% endif %}
+</body>
+</html>
